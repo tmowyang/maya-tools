@@ -1,0 +1,508 @@
+
+spotLight -i 0.023810;
+rename "light1";
+move 7.236068 4.472136 5.257311;
+scale 0.3 0.3 0.3;
+rotate -40.386173 46.353065 -17.896345;
+move -a 0 0 0 light1.scalePivot light1.rotatePivot;
+setAttr "light1.useDepthMapShadows" 1;
+setAttr "light1.dmapResolution" 8192;
+setAttr "light1.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light2";
+move 2.628655 5.257311 8.090170;
+scale 0.3 0.3 0.3;
+rotate -33.017395 15.240157 -4.541298;
+move -a 0 0 0 light2.scalePivot light2.rotatePivot;
+setAttr "light2.useDepthMapShadows" 1;
+setAttr "light2.dmapResolution" 8192;
+setAttr "light2.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light3";
+move -2.763932 4.472136 8.506508;
+scale 0.3 0.3 0.3;
+rotate -27.732302 -16.045055 3.985173;
+move -a 0 0 0 light3.scalePivot light3.rotatePivot;
+setAttr "light3.useDepthMapShadows" 1;
+setAttr "light3.dmapResolution" 8192;
+setAttr "light3.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light4";
+move 4.253254 8.506508 3.090170;
+scale 0.3 0.3 0.3;
+rotate -70.035370 25.171263 -17.781820;
+move -a 0 0 0 light4.scalePivot light4.rotatePivot;
+setAttr "light4.useDepthMapShadows" 1;
+setAttr "light4.dmapResolution" 8192;
+setAttr "light4.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light5";
+move -1.624599 8.506508 5.000000;
+scale 0.3 0.3 0.3;
+rotate -59.553612 -9.349703 5.357596;
+move -a 0 0 0 light5.scalePivot light5.rotatePivot;
+setAttr "light5.useDepthMapShadows" 1;
+setAttr "light5.dmapResolution" 8192;
+setAttr "light5.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light6";
+move 0.000000 10.000000 0.000000;
+scale 0.3 0.3 0.3;
+rotate -90.000000 0.000000 0.000000;
+move -a 0 0 0 light6.scalePivot light6.rotatePivot;
+setAttr "light6.useDepthMapShadows" 1;
+setAttr "light6.dmapResolution" 8192;
+setAttr "light6.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light7";
+move -6.881910 5.257311 5.000000;
+scale 0.3 0.3 0.3;
+rotate -46.437000 -43.487076 19.417543;
+move -a 0 0 0 light7.scalePivot light7.rotatePivot;
+setAttr "light7.useDepthMapShadows" 1;
+setAttr "light7.dmapResolution" 8192;
+setAttr "light7.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light8";
+move -8.944272 4.472136 -0.000000;
+scale 0.3 0.3 0.3;
+rotate -90.000000 -63.434940 63.434948;
+move -a 0 0 0 light8.scalePivot light8.rotatePivot;
+setAttr "light8.useDepthMapShadows" 1;
+setAttr "light8.dmapResolution" 8192;
+setAttr "light8.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light9";
+move -5.257311 8.506508 -0.000000;
+scale 0.3 0.3 0.3;
+rotate -90.000000 -31.717474 31.717478;
+move -a 0 0 0 light9.scalePivot light9.rotatePivot;
+setAttr "light9.useDepthMapShadows" 1;
+setAttr "light9.dmapResolution" 8192;
+setAttr "light9.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light10";
+move -6.881909 5.257311 -5.000000;
+scale 0.3 0.3 0.3;
+rotate -133.562988 -43.487072 85.827705;
+move -a 0 0 0 light10.scalePivot light10.rotatePivot;
+setAttr "light10.useDepthMapShadows" 1;
+setAttr "light10.dmapResolution" 8192;
+setAttr "light10.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light11";
+move -2.763931 4.472136 -8.506508;
+scale 0.3 0.3 0.3;
+rotate -152.267685 -16.045055 59.449757;
+move -a 0 0 0 light11.scalePivot light11.rotatePivot;
+setAttr "light11.useDepthMapShadows" 1;
+setAttr "light11.dmapResolution" 8192;
+setAttr "light11.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light12";
+move -1.624598 8.506508 -5.000000;
+scale 0.3 0.3 0.3;
+rotate -120.446381 -9.349701 16.267035;
+move -a 0 0 0 light12.scalePivot light12.rotatePivot;
+setAttr "light12.useDepthMapShadows" 1;
+setAttr "light12.dmapResolution" 8192;
+setAttr "light12.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light13";
+move 2.628657 5.257311 -8.090169;
+scale 0.3 0.3 0.3;
+rotate -146.982590 15.240168 -48.588810;
+move -a 0 0 0 light13.scalePivot light13.rotatePivot;
+setAttr "light13.useDepthMapShadows" 1;
+setAttr "light13.dmapResolution" 8192;
+setAttr "light13.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light14";
+move 7.236068 4.472136 -5.257310;
+scale 0.3 0.3 0.3;
+rotate -139.613815 46.353077 -98.668694;
+move -a 0 0 0 light14.scalePivot light14.rotatePivot;
+setAttr "light14.useDepthMapShadows" 1;
+setAttr "light14.dmapResolution" 8192;
+setAttr "light14.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light15";
+move 4.253254 8.506508 -3.090169;
+scale 0.3 0.3 0.3;
+rotate -109.964622 25.171265 -35.348278;
+move -a 0 0 0 light15.scalePivot light15.rotatePivot;
+setAttr "light15.useDepthMapShadows" 1;
+setAttr "light15.dmapResolution" 8192;
+setAttr "light15.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light16";
+move 8.506508 5.257311 0.000002;
+scale 0.3 0.3 0.3;
+rotate -90.000000 58.282520 -58.282520;
+move -a 0 0 0 light16.scalePivot light16.rotatePivot;
+setAttr "light16.useDepthMapShadows" 1;
+setAttr "light16.dmapResolution" 8192;
+setAttr "light16.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light17";
+move 2.763932 -4.472136 8.506508;
+scale 0.3 0.3 0.3;
+rotate 27.732302 16.045053 3.985173;
+move -a 0 0 0 light17.scalePivot light17.rotatePivot;
+setAttr "light17.useDepthMapShadows" 1;
+setAttr "light17.dmapResolution" 8192;
+setAttr "light17.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light18";
+move -0.000000 0.000000 10.000000;
+scale 0.3 0.3 0.3;
+rotate 0.000000 0.000000 0.000000;
+move -a 0 0 0 light18.scalePivot light18.rotatePivot;
+setAttr "light18.useDepthMapShadows" 1;
+setAttr "light18.dmapResolution" 8192;
+setAttr "light18.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light19";
+move 5.877852 -0.000000 8.090170;
+scale 0.3 0.3 0.3;
+rotate 0.000000 35.999996 0.000000;
+move -a 0 0 0 light19.scalePivot light19.rotatePivot;
+setAttr "light19.useDepthMapShadows" 1;
+setAttr "light19.dmapResolution" 8192;
+setAttr "light19.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light20";
+move -7.236068 -4.472136 5.257311;
+scale 0.3 0.3 0.3;
+rotate 40.386173 -46.353065 -17.896345;
+move -a 0 0 0 light20.scalePivot light20.rotatePivot;
+setAttr "light20.useDepthMapShadows" 1;
+setAttr "light20.dmapResolution" 8192;
+setAttr "light20.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light21";
+move -9.510565 0.000000 3.090171;
+scale 0.3 0.3 0.3;
+rotate 0.000000 -72.000000 0.000000;
+move -a 0 0 0 light21.scalePivot light21.rotatePivot;
+setAttr "light21.useDepthMapShadows" 1;
+setAttr "light21.dmapResolution" 8192;
+setAttr "light21.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light22";
+move -5.877852 -0.000000 8.090170;
+scale 0.3 0.3 0.3;
+rotate 0.000000 -35.999996 0.000000;
+move -a 0 0 0 light22.scalePivot light22.rotatePivot;
+setAttr "light22.useDepthMapShadows" 1;
+setAttr "light22.dmapResolution" 8192;
+setAttr "light22.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light23";
+move -7.236067 -4.472136 -5.257312;
+scale 0.3 0.3 0.3;
+rotate 139.613831 -46.353062 -98.668701;
+move -a 0 0 0 light23.scalePivot light23.rotatePivot;
+setAttr "light23.useDepthMapShadows" 1;
+setAttr "light23.dmapResolution" 8192;
+setAttr "light23.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light24";
+move -5.877852 0.000000 -8.090171;
+scale 0.3 0.3 0.3;
+rotate 180.000000 -35.999996 -180.000000;
+move -a 0 0 0 light24.scalePivot light24.rotatePivot;
+setAttr "light24.useDepthMapShadows" 1;
+setAttr "light24.dmapResolution" 8192;
+setAttr "light24.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light25";
+move -9.510565 -0.000000 -3.090171;
+scale 0.3 0.3 0.3;
+rotate 180.000000 -72.000000 -180.000000;
+move -a 0 0 0 light25.scalePivot light25.rotatePivot;
+setAttr "light25.useDepthMapShadows" 1;
+setAttr "light25.dmapResolution" 8192;
+setAttr "light25.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light26";
+move 2.763931 -4.472136 -8.506508;
+scale 0.3 0.3 0.3;
+rotate 152.267685 16.045055 59.449757;
+move -a 0 0 0 light26.scalePivot light26.rotatePivot;
+setAttr "light26.useDepthMapShadows" 1;
+setAttr "light26.dmapResolution" 8192;
+setAttr "light26.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light27";
+move 5.877851 0.000000 -8.090171;
+scale 0.3 0.3 0.3;
+rotate 180.000000 35.999977 180.000000;
+move -a 0 0 0 light27.scalePivot light27.rotatePivot;
+setAttr "light27.useDepthMapShadows" 1;
+setAttr "light27.dmapResolution" 8192;
+setAttr "light27.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light28";
+move -0.000001 -0.000000 -10.000000;
+scale 0.3 0.3 0.3;
+rotate 0.000000 180.000000 0.000000;
+move -a 0 0 0 light28.scalePivot light28.rotatePivot;
+setAttr "light28.useDepthMapShadows" 1;
+setAttr "light28.dmapResolution" 8192;
+setAttr "light28.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light29";
+move 8.944272 -4.472136 -0.000000;
+scale 0.3 0.3 0.3;
+rotate 90.000000 63.434940 63.434948;
+move -a 0 0 0 light29.scalePivot light29.rotatePivot;
+setAttr "light29.useDepthMapShadows" 1;
+setAttr "light29.dmapResolution" 8192;
+setAttr "light29.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light30";
+move 9.510566 0.000000 3.090169;
+scale 0.3 0.3 0.3;
+rotate 0.000000 72.000000 0.000000;
+move -a 0 0 0 light30.scalePivot light30.rotatePivot;
+setAttr "light30.useDepthMapShadows" 1;
+setAttr "light30.dmapResolution" 8192;
+setAttr "light30.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light31";
+move 9.510565 -0.000000 -3.090171;
+scale 0.3 0.3 0.3;
+rotate 180.000000 72.000000 180.000000;
+move -a 0 0 0 light31.scalePivot light31.rotatePivot;
+setAttr "light31.useDepthMapShadows" 1;
+setAttr "light31.dmapResolution" 8192;
+setAttr "light31.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light32";
+move -2.628655 -5.257311 8.090170;
+scale 0.3 0.3 0.3;
+rotate 33.017395 -15.240157 -4.541298;
+move -a 0 0 0 light32.scalePivot light32.rotatePivot;
+setAttr "light32.useDepthMapShadows" 1;
+setAttr "light32.dmapResolution" 8192;
+setAttr "light32.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light33";
+move -4.253253 -8.506508 3.090170;
+scale 0.3 0.3 0.3;
+rotate 70.035362 -25.171253 -17.781813;
+move -a 0 0 0 light33.scalePivot light33.rotatePivot;
+setAttr "light33.useDepthMapShadows" 1;
+setAttr "light33.dmapResolution" 8192;
+setAttr "light33.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light34";
+move 1.624599 -8.506508 5.000000;
+scale 0.3 0.3 0.3;
+rotate 59.553612 9.349708 5.357599;
+move -a 0 0 0 light34.scalePivot light34.rotatePivot;
+setAttr "light34.useDepthMapShadows" 1;
+setAttr "light34.dmapResolution" 8192;
+setAttr "light34.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light35";
+move 0.000001 -10.000000 0.000000;
+scale 0.3 0.3 0.3;
+rotate 90.000000 0.000000 0.000000;
+move -a 0 0 0 light35.scalePivot light35.rotatePivot;
+setAttr "light35.useDepthMapShadows" 1;
+setAttr "light35.dmapResolution" 8192;
+setAttr "light35.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light36";
+move -8.506508 -5.257311 0.000002;
+scale 0.3 0.3 0.3;
+rotate 90.000000 -58.282520 -58.282520;
+move -a 0 0 0 light36.scalePivot light36.rotatePivot;
+setAttr "light36.useDepthMapShadows" 1;
+setAttr "light36.dmapResolution" 8192;
+setAttr "light36.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light37";
+move -4.253254 -8.506508 -3.090168;
+scale 0.3 0.3 0.3;
+rotate 109.964622 -25.171265 -35.348278;
+move -a 0 0 0 light37.scalePivot light37.rotatePivot;
+setAttr "light37.useDepthMapShadows" 1;
+setAttr "light37.dmapResolution" 8192;
+setAttr "light37.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light38";
+move -2.628653 -5.257311 -8.090171;
+scale 0.3 0.3 0.3;
+rotate 146.982605 -15.240141 -48.588753;
+move -a 0 0 0 light38.scalePivot light38.rotatePivot;
+setAttr "light38.useDepthMapShadows" 1;
+setAttr "light38.dmapResolution" 8192;
+setAttr "light38.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light39";
+move 1.624600 -8.506508 -4.999999;
+scale 0.3 0.3 0.3;
+rotate 120.446365 9.349711 16.267050;
+move -a 0 0 0 light39.scalePivot light39.rotatePivot;
+setAttr "light39.useDepthMapShadows" 1;
+setAttr "light39.dmapResolution" 8192;
+setAttr "light39.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light40";
+move 6.881914 -5.257311 -4.999994;
+scale 0.3 0.3 0.3;
+rotate 133.562958 43.487110 85.827713;
+move -a 0 0 0 light40.scalePivot light40.rotatePivot;
+setAttr "light40.useDepthMapShadows" 1;
+setAttr "light40.dmapResolution" 8192;
+setAttr "light40.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light41";
+move 5.257310 -8.506508 0.000004;
+scale 0.3 0.3 0.3;
+rotate 90.000000 31.717466 31.717470;
+move -a 0 0 0 light41.scalePivot light41.rotatePivot;
+setAttr "light41.useDepthMapShadows" 1;
+setAttr "light41.dmapResolution" 8192;
+setAttr "light41.dmapFilterSize" 5;
+
+
+spotLight -i 0.023810;
+rename "light42";
+move 6.881912 -5.257311 4.999996;
+scale 0.3 0.3 0.3;
+rotate 46.437027 43.487095 19.417568;
+move -a 0 0 0 light42.scalePivot light42.rotatePivot;
+setAttr "light42.useDepthMapShadows" 1;
+setAttr "light42.dmapResolution" 8192;
+setAttr "light42.dmapFilterSize" 5;
+
+select -cl;
+select -add light1;
+select -add light2;
+select -add light3;
+select -add light4;
+select -add light5;
+select -add light6;
+select -add light7;
+select -add light8;
+select -add light9;
+select -add light10;
+select -add light11;
+select -add light12;
+select -add light13;
+select -add light14;
+select -add light15;
+select -add light16;
+select -add light17;
+select -add light18;
+select -add light19;
+select -add light20;
+select -add light21;
+select -add light22;
+select -add light23;
+select -add light24;
+select -add light25;
+select -add light26;
+select -add light27;
+select -add light28;
+select -add light29;
+select -add light30;
+select -add light31;
+select -add light32;
+select -add light33;
+select -add light34;
+select -add light35;
+select -add light36;
+select -add light37;
+select -add light38;
+select -add light39;
+select -add light40;
+select -add light41;
+select -add light42;
+group -n "domeLightGroup";
+
+select -cl;

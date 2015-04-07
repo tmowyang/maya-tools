@@ -1,0 +1,49 @@
+proc buildEngine(int $hp)
+{
+	print ("Assemble engine of " + $hp + " horesepower!" + "\n");
+	print ("VroomVroomm!!!" + "\n");	
+}
+
+proc paintAndBody(string $color)
+{
+	print ("Painting body panels..." + "\n");
+	print ($color + " WTF were you thinking???" + "\n");
+}
+
+proc buildATire(int $numTires)
+{
+	for($x = 0;$x < $numTires;$x++)
+		print ("Here's a tire!" + "\n");
+}
+
+proc string getRollingChasis()
+{
+	int $num = rand(1,6);
+	buildATire($num);
+	return "Here's your chasis!";
+}
+
+proc buildElectricalSystem()
+{
+	print ("Add wiring..." + "\n");
+}
+
+proc finalDetail()
+{
+	print ("Cleaning up and ready for customer..." + "\n");
+}
+
+global proc buildACar()
+{
+	string $result = getRollingChasis();
+	print ($result + "\n");
+	int $hp = rand(75,460);
+	buildEngine($hp);
+	buildElectricalSystem();
+	string $colors[5] = {"Purple", "Green", "Pink", "Orange", "Red"};
+	int $i = rand(size($colors));
+	paintAndBody($colors[$i]);
+	finalDetail();
+
+	print "Here's your car!";
+}

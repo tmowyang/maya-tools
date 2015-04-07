@@ -1,0 +1,43 @@
+///////////////////////////////////////////////////////////////////////////////
+//  randomizer.mel
+//
+//  Author:      Teal Owyang
+//  Date:        2014-10-29
+//
+//  Description: Takes any number of selected objects and scatter them
+//               throughout the Maya scene randomizing their position,
+//               rotation, and scale.
+///////////////////////////////////////////////////////////////////////////////
+
+global proc randomizer()
+{
+    // Translate range
+    float $translateXmin = -10, $translateYmin = -10, $translateZmin = -10;
+    float $translateXmax = 10, $translateYmax = 10, $translateZmax = 10;
+
+    // Rotate range
+    float $rotateXmin = -180, $rotateYmin = -180, $rotateZmin = -180;
+    float $rotateXmax = 180, $rotateYmax = 180, $rotateZmax = 180;
+
+    // Scale range
+    float $scaleXmin = 1, $scaleYmin = 1, $scaleZmin = 1;
+    float $scaleXmax = 2, $scaleYmax = 2, $scaleZmax = 2;
+
+    string $objects[] = `ls -selection`;
+    
+    for ($object in $objects)
+    {
+        setAttr ($object + ".translateX") ( rand($translateXmin, $translateXmax) );
+        setAttr ($object + ".translateY") ( rand($translateYmin, $translateYmax) );
+        setAttr ($object + ".translateZ") ( rand($translateZmin, $translateZmax) );
+
+        setAttr ($object + ".rotateX") ( rand($rotateXmin, $rotateXmax) );
+        setAttr ($object + ".rotateY") ( rand($rotateYmin, $rotateYmax) );
+        setAttr ($object + ".rotateZ") ( rand($rotateZmin, $rotateZmax) );
+
+        setAttr ($object + ".scaleX") ( rand($scaleXmin, $scaleXmax) );
+        setAttr ($object + ".scaleY") ( rand($scaleYmin, $scaleYmax) );
+        setAttr ($object + ".scaleZ") ( rand($scaleZmin, $scaleZmax) );
+        
+    }
+}

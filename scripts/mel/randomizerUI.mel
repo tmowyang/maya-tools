@@ -1,0 +1,280 @@
+///////////////////////////////////////////////////////////////////////////////
+//  randomizer.mel
+//
+//  Author:      Teal Owyang
+//  Date:        2014-10-29
+//
+//  Description: Takes any number of selected objects and scatter them
+//               throughout the Maya scene randomizing their position,
+//               rotation, and scale.
+//
+//  To Do: 
+//  [] Use checkBox -changeCommand rather than -onCommand/-offCommand
+//  [] Use a local procedure to enable/disable floatField that takes
+//     in the floatField to enable/disable
+//  [] Make a string array of controls and utilize for attribute in
+//     getAttr and looping through it. Also use it to loop through
+//     the variable names that have those controls
+//  [] Create local procedure to calculate the values for local/world
+//     space and if it is enabled
+//
+///////////////////////////////////////////////////////////////////////////////
+
+global proc randomizerUI()
+{
+    string $window = "randomizerUI";
+    if (`window -exists $window`)
+        deleteUI $window;
+    if (`windowPref -exists $window`)
+        windowPref -remove $window;
+        
+    int $width = 300;
+    int $height = 290;
+        
+    window -width $width -height $height -sizeable false -menuBar true -title "Scatterand" randomizerUI;
+        frameLayout -borderVisible 1 -borderStyle "etchedIn" -labelVisible 0;
+            formLayout mainForm;
+            
+        radioCollection spaceRC;
+            radioButton -label "Local Space" -select localSpaceRB;
+            radioButton -label "World Space" worldSpaceRB;
+
+        text -label "Min" MinFloat;
+        text -label "Max" MaxFloat;
+        
+        text -label "Translate:" translateTxt;        
+        text -label "Rotate:" rotateTxt;
+        text -label "Scale:" scaleTxt;
+
+        checkBox -label "X" 
+            -onCommand "floatField -edit -enable 1 txMinFloat; floatField -edit -enable 1 txMaxFloat;"
+            -offCommand "floatField -edit -enable 0 txMinFloat; floatField -edit -enable 0 txMaxFloat;" translateXCB;
+        checkBox -label "Y"
+            -onCommand "floatField -edit -enable 1 tyMinFloat; floatField -edit -enable 1 tyMaxFloat;"
+            -offCommand "floatField -edit -enable 0 tyMinFloat; floatField -edit -enable 0 tyMaxFloat;" translateYCB;
+        checkBox -label "Z"
+            -onCommand "floatField -edit -enable 1 tzMinFloat; floatField -edit -enable 1 tzMaxFloat;"
+            -offCommand "floatField -edit -enable 0 tzMinFloat; floatField -edit -enable 0 tzMaxFloat;" translateZCB;
+        checkBox -label "X"
+            -onCommand "floatField -edit -enable 1 rxMinFloat; floatField -edit -enable 1 rxMaxFloat;"
+            -offCommand "floatField -edit -enable 0 rxMinFloat; floatField -edit -enable 0 rxMaxFloat;" rotateXCB;
+        checkBox -label "Y"
+            -onCommand "floatField -edit -enable 1 ryMinFloat; floatField -edit -enable 1 ryMaxFloat;"
+            -offCommand "floatField -edit -enable 0 ryMinFloat; floatField -edit -enable 0 ryMaxFloat;" rotateYCB;
+        checkBox -label "Z"
+            -onCommand "floatField -edit -enable 1 rzMinFloat; floatField -edit -enable 1 rzMaxFloat;"
+            -offCommand "floatField -edit -enable 0 rzMinFloat; floatField -edit -enable 0 rzMaxFloat;" rotateZCB;
+        checkBox -label "X"
+            -onCommand "floatField -edit -enable 1 sxMinFloat; floatField -edit -enable 1 sxMaxFloat;"
+            -offCommand "floatField -edit -enable 0 sxMinFloat; floatField -edit -enable 0 sxMaxFloat;" scaleXCB;
+        checkBox -label "Y"
+            -onCommand "floatField -edit -enable 1 syMinFloat; floatField -edit -enable 1 syMaxFloat;"
+            -offCommand "floatField -edit -enable 0 syMinFloat; floatField -edit -enable 0 syMaxFloat;" scaleYCB;
+        checkBox -label "Z"
+            -onCommand "floatField -edit -enable 1 szMinFloat; floatField -edit -enable 1 szMaxFloat;"
+            -offCommand "floatField -edit -enable 0 szMinFloat; floatField -edit -enable 0 szMaxFloat;" scaleZCB;
+
+        floatField -width 75 -precision 3 -enable 0 txMinFloat;
+        floatField -width 75 -precision 3 -enable 0 txMaxFloat;
+        floatField -width 75 -precision 3 -enable 0 tyMinFloat;
+        floatField -width 75 -precision 3 -enable 0 tyMaxFloat;
+        floatField -width 75 -precision 3 -enable 0 tzMinFloat;
+        floatField -width 75 -precision 3 -enable 0 tzMaxFloat;
+        
+        floatField -width 75 -precision 3 -minValue 0 -maxValue 360 -enable 0 rxMinFloat;
+        floatField -width 75 -precision 3 -minValue 0 -maxValue 360 -enable 0 -value 360 rxMaxFloat;
+        floatField -width 75 -precision 3 -minValue 0 -maxValue 360 -enable 0 ryMinFloat;
+        floatField -width 75 -precision 3 -minValue 0 -maxValue 360 -enable 0 -value 360 ryMaxFloat;
+        floatField -width 75 -precision 3 -minValue 0 -maxValue 360 -enable 0 rzMinFloat;
+        floatField -width 75 -precision 3 -minValue 0 -maxValue 360 -enable 0 -value 360 rzMaxFloat;
+
+        floatField -width 75 -precision 3 -minValue .001 -enable 0 -value 1 sxMinFloat;
+        floatField -width 75 -precision 3 -minValue .001 -enable 0 -value 1 sxMaxFloat;
+        floatField -width 75 -precision 3 -minValue .001 -enable 0 -value 1 syMinFloat;
+        floatField -width 75 -precision 3 -minValue .001 -enable 0 -value 1 syMaxFloat;
+        floatField -width 75 -precision 3 -minValue .001 -enable 0 -value 1 szMinFloat;
+        floatField -width 75 -precision 3 -minValue .001 -enable 0 -value 1 szMaxFloat;
+
+        separator -style "in" sep;
+        
+        button -label "OK" -width 150 -command("randomizer();") okBtn;
+        button -label "Cancel" -width 150 -command ("deleteUI " + $window) cancelBtn;
+    
+    // Local and World Space
+    formLayout -edit -attachForm localSpaceRB "left" 60 -attachForm localSpaceRB "top" 10 mainForm;
+    formLayout -edit -attachControl worldSpaceRB "left" 25 localSpaceRB -attachForm worldSpaceRB "top" 10 mainForm;
+
+    // Min and Max labels
+    formLayout -edit -attachForm MinFloat "left" 165 -attachControl MinFloat "top" 10 worldSpaceRB mainForm;
+    formLayout -edit -attachForm MaxFloat "left" 235 -attachControl MaxFloat "top" 10 worldSpaceRB mainForm;
+    
+    // Translate    
+    formLayout -edit -attachForm translateTxt "left" 25 -attachControl translateTxt "top" 1 MinFloat mainForm;
+    formLayout -edit -attachForm translateXCB "left" 100 -attachControl translateXCB "top" 1 MinFloat mainForm;
+    formLayout -edit -attachForm txMinFloat "left" 135 -attachControl txMinFloat "top" 1 MinFloat mainForm;
+    formLayout -edit -attachForm txMaxFloat "left" 210 -attachControl txMaxFloat "top" 1 MinFloat mainForm;
+        
+    formLayout -edit -attachForm translateYCB "left" 100 -attachControl translateYCB "top" 7 translateTxt mainForm;
+    formLayout -edit -attachForm tyMinFloat "left" 135 -attachControl tyMinFloat "top" 7 translateTxt mainForm;
+    formLayout -edit -attachForm tyMaxFloat "left" 210 -attachControl tyMaxFloat "top" 7 translateTxt mainForm;
+
+    formLayout -edit -attachForm translateZCB "left" 100 -attachControl translateZCB "top" 3 translateYCB mainForm;
+    formLayout -edit -attachForm tzMinFloat "left" 135 -attachControl tzMinFloat "top" 3 translateYCB mainForm;
+    formLayout -edit -attachForm tzMaxFloat "left" 210 -attachControl tzMaxFloat "top" 3 translateYCB mainForm;            
+
+    // Rotate
+    formLayout -edit -attachForm rotateTxt "left" 25 -attachControl rotateTxt "top" 10 translateZCB mainForm;
+    formLayout -edit -attachForm rotateXCB "left" 100 -attachControl rotateXCB "top" 10 translateZCB mainForm;
+    formLayout -edit -attachForm rxMinFloat "left" 135 -attachControl rxMinFloat "top" 10 translateZCB mainForm;
+    formLayout -edit -attachForm rxMaxFloat "left" 210 -attachControl rxMaxFloat "top" 10 translateZCB mainForm;
+        
+    formLayout -edit -attachForm rotateYCB "left" 100 -attachControl rotateYCB "top" 7 rotateTxt mainForm;
+    formLayout -edit -attachForm ryMinFloat "left" 135 -attachControl ryMinFloat "top" 7 rotateTxt mainForm;
+    formLayout -edit -attachForm ryMaxFloat "left" 210 -attachControl ryMaxFloat "top" 7 rotateTxt mainForm;
+
+    formLayout -edit -attachForm rotateZCB "left" 100 -attachControl rotateZCB "top" 3 rotateYCB mainForm;
+    formLayout -edit -attachForm rzMinFloat "left" 135 -attachControl rzMinFloat "top" 3 rotateYCB mainForm;
+    formLayout -edit -attachForm rzMaxFloat "left" 210 -attachControl rzMaxFloat "top" 3 rotateYCB mainForm; 
+    
+    // Scale
+    formLayout -edit -attachForm scaleTxt "left" 25 -attachControl scaleTxt "top" 10 rotateZCB mainForm;
+    formLayout -edit -attachForm scaleXCB "left" 100 -attachControl scaleXCB "top" 10 rotateZCB mainForm;
+    formLayout -edit -attachForm sxMinFloat "left" 135 -attachControl sxMinFloat "top" 10 rotateZCB mainForm;
+    formLayout -edit -attachForm sxMaxFloat "left" 210 -attachControl sxMaxFloat "top" 10 rotateZCB mainForm;
+        
+    formLayout -edit -attachForm scaleYCB "left" 100 -attachControl scaleYCB "top" 7 scaleTxt mainForm;
+    formLayout -edit -attachForm syMinFloat "left" 135 -attachControl syMinFloat "top" 7 scaleTxt mainForm;
+    formLayout -edit -attachForm syMaxFloat "left" 210 -attachControl syMaxFloat "top" 7 scaleTxt mainForm;
+
+    formLayout -edit -attachForm scaleZCB "left" 100 -attachControl scaleZCB "top" 3 scaleYCB mainForm;
+    formLayout -edit -attachForm szMinFloat "left" 135 -attachControl szMinFloat "top" 3 scaleYCB mainForm;
+    formLayout -edit -attachForm szMaxFloat "left" 210 -attachControl szMaxFloat "top" 3 scaleYCB mainForm; 
+    
+    // Buttons
+    formLayout -edit -attachForm sep "left" 0 -attachForm sep "right" 0 -attachForm sep "bottom" 25 mainForm;
+	formLayout -edit -attachForm okBtn "left" 0 -attachControl okBtn "top" 0 sep -attachPosition okBtn "right" 0 50 -attachForm okBtn "bottom" 0 mainForm;        
+	formLayout -edit -attachControl cancelBtn "left" 0 okBtn -attachControl cancelBtn "top" 0 sep -attachForm cancelBtn "right" 0 -attachForm cancelBtn "bottom" 0 mainForm;
+
+    showWindow $window;
+}
+
+global proc randomizer()
+{
+    // Translate range
+    float $translateXmin = `floatField -query -value txMinFloat`;
+    float $translateYmin = `floatField -query -value tyMinFloat`;
+    float $translateZmin = `floatField -query -value tzMinFloat`;
+    float $translateXmax = `floatField -query -value txMaxFloat`;
+    float $translateYmax = `floatField -query -value tyMaxFloat`; 
+    float $translateZmax = `floatField -query -value tzMaxFloat`;
+
+    // Rotate range
+    float $rotateXmin = `floatField -query -value rxMinFloat`;
+    float $rotateYmin = `floatField -query -value ryMinFloat`;
+    float $rotateZmin = `floatField -query -value rzMinFloat`;;
+    float $rotateXmax = `floatField -query -value rxMaxFloat`;
+    float $rotateYmax = `floatField -query -value ryMaxFloat`;
+    float $rotateZmax = `floatField -query -value rzMaxFloat`;
+
+    // Scale range
+    float $scaleXmin = `floatField -query -value sxMinFloat`;
+    float $scaleYmin = `floatField -query -value syMinFloat`;
+    float $scaleZmin = `floatField -query -value szMinFloat`;
+    float $scaleXmax = `floatField -query -value sxMaxFloat`;
+    float $scaleYmax = `floatField -query -value syMaxFloat`;
+    float $scaleZmax = `floatField -query -value szMaxFloat`;
+
+    int $isOn;
+    float $val;
+    string $selectedRB = `radioCollection -query -select spaceRC`;
+    string $objects[] = `ls -selection`;
+    
+    for ($object in $objects)
+    {
+        if ($selectedRB == "worldSpaceRB")
+        {
+            $isOn = `checkBox -query -value translateXCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".translateX") ( rand($translateXmin, $translateXmax) );
+            
+            $isOn = `checkBox -query -value translateYCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".translateY") ( rand($translateYmin, $translateYmax) );
+            
+            $isOn = `checkBox -query -value translateZCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".translateZ") ( rand($translateZmin, $translateZmax) );
+
+            $isOn = `checkBox -query -value rotateXCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".rotateX") ( rand($rotateXmin, $rotateXmax) );
+            
+            $isOn = `checkBox -query -value rotateYCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".rotateY") ( rand($rotateYmin, $rotateYmax) );
+            
+            $isOn = `checkBox -query -value rotateZCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".rotateZ") ( rand($rotateZmin, $rotateZmax) );
+
+            $isOn = `checkBox -query -value scaleXCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".scaleX") ( rand($scaleXmin, $scaleXmax) );
+            
+            $isOn = `checkBox -query -value scaleYCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".scaleY") ( rand($scaleYmin, $scaleYmax) );
+            
+            $isOn = `checkBox -query -value scaleZCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".scaleZ") ( rand($scaleZmin, $scaleZmax) );
+        }
+        else
+        {
+            $val = `getAttr ($object + ".translateX")`;
+            $isOn = `checkBox -query -value translateXCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".translateX") ( rand(($translateXmin + $val), ($translateXmax + $val)) );
+            
+            $val = `getAttr ($object + ".translateY")`;
+            $isOn = `checkBox -query -value translateYCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".translateY") ( rand(($translateYmin + $val), ($translateYmax + $val)) );
+            
+            $val = `getAttr ($object + ".translateZ")`;
+            $isOn = `checkBox -query -value translateZCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".translateZ") ( rand(($translateZmin + $val), ($translateZmax + $val)) );
+
+            $val = `getAttr ($object + ".rotateX")`;
+            $isOn = `checkBox -query -value rotateXCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".rotateX") ( rand(($rotateXmin + $val), ($rotateXmax + $val)) );
+            
+            $val = `getAttr ($object + ".rotateY")`;
+            $isOn = `checkBox -query -value rotateYCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".rotateY") ( rand(($rotateYmin + $val), ($rotateYmax + $val)) );
+            
+            $val = `getAttr ($object + ".rotateZ")`;
+            $isOn = `checkBox -query -value rotateZCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".rotateZ") ( rand(($rotateZmin + $val), ($rotateZmax + $val)) );
+
+            $val = `getAttr ($object + ".scaleX")`;
+            $isOn = `checkBox -query -value scaleXCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".scaleX") ( rand(($scaleXmin + $val), ($scaleXmax + $val)) );
+            
+            $val = `getAttr ($object + ".scaleY")`;
+            $isOn = `checkBox -query -value scaleYCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".scaleY") ( rand(($scaleYmin + $val), ($scaleYmax + $val)) );
+            
+            $val = `getAttr ($object + ".scaleZ")`;
+            $isOn = `checkBox -query -value scaleZCB`;
+            if ($isOn == 1)
+                setAttr ($object + ".scaleZ") ( rand(($scaleZmin + $val), ($scaleZmax + $val)) );
+        }
+    }
+}

@@ -1,0 +1,26 @@
+///////////////////////////////////////////////////////////////////////////////
+//  jointRenamer.mel
+//
+//  Author:      Teal Owyang
+//  Date:        2014-10-22
+//
+//  Description: A joint renamer tool that will take two variables for
+//               prefix and suffix, then walk through the selected joints
+//               renaming the bones of a skeleton. The new name should be 
+//               <prefix><originalName><suffix>.
+///////////////////////////////////////////////////////////////////////////////
+
+global proc jointRenamer()
+{
+    string $prefix = "L_";
+    string $suffix = "_BONE";
+
+    string $joints[] = `ls -selection -type "joint"`;
+    for ($joint in $joints)
+    {
+        if (!startsWith($joint, $prefix) && !endsWith($joint, $suffix))
+        {
+            rename $joint ($prefix + $joint + $suffix);
+        }
+    }
+}

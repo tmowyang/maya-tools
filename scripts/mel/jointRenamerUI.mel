@@ -1,0 +1,58 @@
+///////////////////////////////////////////////////////////////////////////////
+//  jointRenamerUI.mel
+//
+//  Author:      Teal Owyang
+//  Date:        2014-10-22
+//
+//  Description: A joint renamer tool that will take two variables for
+//               prefix and suffix, then walk through the selected joints
+//               renaming the bones of a skeleton. The new name should be 
+//               <prefix><originalName><suffix>.
+///////////////////////////////////////////////////////////////////////////////
+
+global proc jointRenamerUI()
+{
+    string $myWindow = "jointRenamerUI";
+    if (`window -exists $myWindow`)
+        deleteUI $myWindow;
+    if (`windowPref -exists $myWindow`)
+        windowPref -remove $myWindow;
+        
+    window -title "Joint Renamer" jointRenamerUI;
+        columnLayout textLayt;
+            rowLayout -numberOfColumns 2;
+                radioCollection renameRC;
+                radioButton -select -label "Prefix" -width 100 prefix;
+                radioButton -label "Suffix" -width 100 suffix;
+            setParent textLayt;
+            textField -width 200 renameTxt;
+            rowLayout -numberOfColumns 2 buttonLayt;
+                button -label "OK" -width 100 -command("jointRenamer(); deleteUI " + $myWindow) okBtn;
+                button -label "Cancel" -width 100 -command ("deleteUI " + $myWindow) cancelBtn;
+    showWindow $myWindow;
+}
+
+global proc jointRenamer()
+{
+    string $prefix = "";
+    string $suffix = "";
+    string $selectedRB = `radioCollection -query -select renameRC`;
+    
+    if ($selectedRB == "prefix") 
+    {
+        $prefix = `textField -query -text renameTxt`;
+    }
+    else
+    {
+        $suffix = `textField -query -text renameTxt`;
+    }
+
+    string $joints[] = `ls -selection -type "joint"`;
+    for ($joint in $joints)
+    {
+        // if (!startsWith($joint, $prefix) && !endsWith($joint, $suffix))
+        // {
+            rename $joint ($prefix + $joint + $suffix);
+        // }
+    }
+}

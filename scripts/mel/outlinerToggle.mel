@@ -1,0 +1,16 @@
+///////////////////////////////////////////////////////////////////////////////
+//  outlinerToggle.mel
+//
+//  Author:      Teal Owyang
+//  Date:        2014-11-05
+//
+//  Description: Toggles outliner window on and off
+///////////////////////////////////////////////////////////////////////////////
+
+global proc outlinerToggle()
+{
+    if (`window -exists "outlinerPanel1Window"`)
+        deleteUI "outlinerPanel1Window";
+    else
+        OutlinerWindow;
+}

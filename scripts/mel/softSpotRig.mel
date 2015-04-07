@@ -1,0 +1,594 @@
+///////////////////////////////////////////////////////////////////////
+//                     Created by: Mike Harris
+//                     Date: 03/16/2005
+//
+//             Update 0.1: Removed global proceedures for resources.
+//             Update 0.2: Removed expressions for performance.
+//             Update 0.3: Added controls to adjust light spacing.
+//             Update 1.0: Updated UI for Maya 2k changes.
+//
+// Description:
+//       This is a Spot Light Rig utility that generates a
+//       lighting setup to simulate soft shadow lighting.
+//
+//       You can use the camera created to "Look through selected"
+//       in the viewport to aim your light rig at your subject.
+//
+//       All of the rig controls are located under the "rigControls"
+//       node in the extra attributes folder of the Attribute Editor.
+//
+//       If you have any comments or suggestions
+//       you can contact me at: pipeTD@gmail.com
+///////////////////////////////////////////////////////////////////////
+
+global proc softSpotRig()
+{
+    string $lrWin = "lightRigWin";
+    if (`window -exists $lrWin`)
+        deleteUI $lrWin;
+    if (`windowPref -exists $lrWin`)
+        windowPref -remove $lrWin;
+
+    int $width = 425;
+    int $height = 425;
+
+    window -width $width -height $height -menuBar true -sizeable false -title "Light Rig" $lrWin;
+
+    menu -label "Help";
+        menuItem -label "About..." -command "gmh_aboutWin";
+
+    frameLayout -borderVisible 1 -borderStyle "etchedIn" -labelVisible 0;
+        formLayout mainForm;
+
+            // Create controls
+            text -label "Number of lights:" numTxt;
+            radioCollection numLightsRC;
+                radioButton -label "9" -select nineRB;
+                radioButton -label "16" sixteenRB;
+                radioButton -label "25" twentyfiveRB;
+                radioButton -label "36" thirtysixRB;
+                
+            colorSliderGrp -label "Color" -rgb 1 1 1 colorCSG;
+            floatSliderGrp -maxValue 10 -minValue 0 -fieldMaxValue 10000 -fieldMinValue -10000 -value 1 -field true -label "Intensity" intFSG;
+            checkBox -label "Emit Specular" specCB;
+            floatSliderGrp -minValue 0 -maxValue 180 -value 40 -field true -label "Cone Angle" caFSG;
+            floatSliderGrp -minValue -10 -maxValue 10 -fieldMaxValue 180 -fieldMinValue -180 -value 0 -field true -label "Penumbra Angle" paFSG;
+            floatSliderGrp -minValue 0 -maxValue 255 -fieldMaxValue 10000 -value 0 -field true -label "Dropoff" dropFSG;
+            text -label "Shadow Type:" stTxt;
+            radioCollection shadowTypesRC;
+                radioButton -label "None" -select -onCommand ("colorSliderGrp -edit -enable 0 scCSG; " +
+                                                              "intSliderGrp -edit -enable 0 drISG; " +
+                                                              "intSliderGrp -edit -enable 0 dfISG; " +
+                                                              "floatSliderGrp -edit -enable 0 dbFSG; " +
+                                                              "floatSliderGrp -edit -enable 0 lrFSG; " +
+                                                              "intSliderGrp -edit -enable 0 srISG;") noneRB;
+                radioButton -label "Depth Map" -onCommand ("colorSliderGrp -edit -enable 1 scCSG; " +
+                                                           "intSliderGrp -edit -enable 1 drISG; " +
+                                                           "intSliderGrp -edit -enable 1 dfISG; " +
+                                                           "floatSliderGrp -edit -enable 1 dbFSG; " +
+                                                           "floatSliderGrp -edit -enable 0 lrFSG; " +
+                                                           "intSliderGrp -edit -enable 0 srISG;") dmRB;
+                radioButton -label "Ray Trace" -onCommand ("colorSliderGrp -edit -enable 1 scCSG; " +
+                                                           "intSliderGrp -edit -enable 0 drISG; " +
+                                                           "intSliderGrp -edit -enable 0 dfISG; " +
+                                                           "floatSliderGrp -edit -enable 0 dbFSG; " +
+                                                           "floatSliderGrp -edit -enable 1 lrFSG; " +
+                                                           "intSliderGrp -edit -enable 1 srISG;") rtRB;
+                                                                     
+            colorSliderGrp -label "Shadow Color" -enable 0 -rgb 0 0 0 scCSG;
+            intSliderGrp -minValue 16 -maxValue 8192 -enable 0 -value 512 -field true -label "Dmap Resolution" drISG;
+            intSliderGrp -minValue 0 -maxValue 5 -fieldMaxValue 10000 -enable 0 -value 1 -field true -label "Dmap Filter Size" dfISG;
+            floatSliderGrp -minValue 0 -maxValue 1 -fieldMaxValue 10000 -pre 3 -enable 0 -value .001 -field true -label "Dmap Bias" dbFSG;
+            floatSliderGrp -minValue 0 -maxValue 1 -fieldMaxValue 10000 -enable 0 -field true -label "Light Radius" lrFSG;
+            intSliderGrp -minValue 1 -maxValue 40 -fieldMaxValue 10000 -enable 0 -value 1 -field true -label "Shadow Rays" srISG;
+            separator -style "in" sep;
+            button -label "Create Rig" -command ("processUI();deleteUI " + $lrWin) createBtn;
+            button -label "Cancel" -command ("deleteUI " + $lrWin) cancelBtn;
+
+            // Position controls
+            formLayout -edit -attachForm numTxt "left" 80 -attachForm numTxt "top" 10 mainForm;
+            formLayout -edit -attachControl nineRB "left" 15 numTxt -attachForm nineRB "top" 10 mainForm;
+            formLayout -edit -attachControl sixteenRB "left" 10 nineRB -attachForm sixteenRB "top" 10 mainForm;
+            formLayout -edit -attachControl twentyfiveRB "left" 10 sixteenRB -attachForm twentyfiveRB "top" 10 mainForm;
+            formLayout -edit -attachControl thirtysixRB "left" 10 twentyfiveRB -attachForm thirtysixRB "top" 10 mainForm;
+            
+            formLayout -edit -attachForm colorCSG "left" -40 -attachControl colorCSG "top" 10 numTxt -attachForm colorCSG "right" 40 mainForm;
+            formLayout -edit -attachForm intFSG "left" -40 -attachControl intFSG "top" 5 colorCSG -attachForm intFSG "right" 40 mainForm;
+            formLayout -edit -attachForm specCB "left" 103 -attachControl specCB "top" 5 intFSG -attachForm specCB "right" 40 mainForm;
+            formLayout -edit -attachForm caFSG "left" -40 -attachControl caFSG "top" 5 specCB -attachForm caFSG "right" 40 mainForm;
+            formLayout -edit -attachForm paFSG "left" -40 -attachControl paFSG "top" 5 caFSG -attachForm paFSG "right" 40 mainForm;
+            formLayout -edit -attachForm dropFSG "left" -40 -attachControl dropFSG "top" 5 paFSG -attachForm dropFSG "right" 40 mainForm;
+
+            formLayout -edit -attachForm stTxt "left" 55 -attachControl stTxt "top" 10 dropFSG mainForm;
+            formLayout -edit -attachControl noneRB "left" 15 stTxt -attachControl noneRB "top" 10 dropFSG mainForm;
+            formLayout -edit -attachControl dmRB "left" 10 noneRB -attachControl dmRB "top" 10 dropFSG mainForm;
+            formLayout -edit -attachControl rtRB "left" 10 dmRB -attachControl rtRB "top" 10 dropFSG mainForm;  
+            
+            formLayout -edit -attachForm scCSG "left" -40 -attachControl scCSG "top" 10 stTxt -attachForm scCSG "right" 40 mainForm;
+            formLayout -edit -attachForm drISG "left" -40 -attachControl drISG "top" 5 scCSG -attachForm drISG "right" 40 mainForm;
+            formLayout -edit -attachForm dfISG "left" -40 -attachControl dfISG "top" 5 drISG -attachForm dfISG "right" 40 mainForm;
+            formLayout -edit -attachForm dbFSG "left" -40 -attachControl dbFSG "top" 5 dfISG -attachForm dbFSG "right" 40 mainForm;
+            formLayout -edit -attachForm lrFSG "left" -40 -attachControl lrFSG "top" 5 dbFSG -attachForm lrFSG "right" 40 mainForm;
+            formLayout -edit -attachForm srISG "left" -40 -attachControl srISG "top" 5 lrFSG -attachForm srISG "right" 40 mainForm;
+            
+            formLayout -edit -attachForm sep "left" 0 -attachForm sep "right" 0 -attachForm sep "bottom" 25 mainForm;
+            formLayout -edit -attachForm createBtn "left" 0 -attachControl createBtn "top" 0 sep -attachPosition createBtn "right" 0 50 -attachForm createBtn "bottom" 0 mainForm;        
+            formLayout -edit -attachControl cancelBtn "left" 0 createBtn -attachControl cancelBtn "top" 0 sep -attachForm cancelBtn "right" 0 -attachForm cancelBtn "bottom" 0 mainForm;
+
+    window -edit -width $width -height $height $lrWin;
+
+    showWindow $lrWin;
+}
+
+global proc gmh_aboutWin()
+{
+    string $aboutWindow = "AboutWin";
+
+    if (`window -ex $aboutWindow`)
+        deleteUI $aboutWindow;
+        
+    window -resizeToFitChildren true -sizeable false -title "About Light Rig" $aboutWindow;
+
+        frameLayout -borderVisible true -borderStyle "etchedIn" -labelVisible false;
+            columnLayout;
+                text -label "Created by: Mike Harris" -align "left";
+                text -label "This is a Spot Light Rig utility that generates" -align "left";
+                text -label "a lighting setup to simulate soft area lighting." -align "left";
+                text -label "";
+                text -label "If you have any comments or suggestions" -align "left";
+                text -label "you can contact me at: pipeTD@gmail.com" -align "left";
+
+    showWindow $aboutWindow;
+}
+
+proc string[] buildShadingNodes(string $rigNum, float $offset, string $lightRigGroup, int $nodeNumber)
+{
+    string $mdLightOffset = `shadingNode -name ("softSpotRig" + $rigNum + "_mdLightOffset" + $nodeNumber) -asUtility multiplyDivide`;
+    string $mdNegative = `shadingNode -name ("softSpotRig" + $rigNum + "_mdNegative" + $nodeNumber) -asUtility multiplyDivide`;
+    setAttr ($mdLightOffset + ".input2X") $offset;
+    setAttr ($mdLightOffset + ".input2Y") $offset;
+    setAttr ($mdNegative + ".input2X") -1.0;
+    setAttr ($mdNegative + ".input2Y") -1.0;
+    connectAttr -force ($lightRigGroup + ".lightSpacingX") ($mdLightOffset + ".input1X");
+    connectAttr -force ($lightRigGroup + ".lightSpacingY") ($mdLightOffset + ".input1Y");
+    connectAttr -force ($mdLightOffset + ".outputX") ($mdNegative + ".input1X");
+    connectAttr -force ($mdLightOffset + ".outputY") ($mdNegative + ".input1Y");
+
+    return {$mdLightOffset, $mdNegative};
+}
+
+proc offsetNine(string $rigNum, string $mdLightOffset, string $mdNegative)
+{
+    connectAttr -force ($mdNegative + ".outputX") ("rigControls" + $rigNum + "|spot1.translateX");
+    connectAttr -force ($mdNegative + ".outputY") ("rigControls" + $rigNum + "|spot1.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot2.translateX");
+    connectAttr -force ($mdNegative + ".outputY") ("rigControls" + $rigNum + "|spot2.translateY");
+    connectAttr -force ($mdLightOffset + ".outputX") ("rigControls" + $rigNum + "|spot3.translateX");
+    connectAttr -force ($mdNegative + ".outputY") ("rigControls" + $rigNum + "|spot3.translateY");
+
+    connectAttr -force ($mdNegative + ".outputX") ("rigControls" + $rigNum + "|spot4.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot4.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot5.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot5.translateY");
+    connectAttr -force ($mdLightOffset + ".outputX") ("rigControls" + $rigNum + "|spot6.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot6.translateY");
+
+    connectAttr -force ($mdNegative + ".outputX") ("rigControls" + $rigNum + "|spot7.translateX");
+    connectAttr -force ($mdLightOffset + ".outputY") ("rigControls" + $rigNum + "|spot7.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot8.translateX");
+    connectAttr -force ($mdLightOffset + ".outputY") ("rigControls" + $rigNum + "|spot8.translateY");
+    connectAttr -force ($mdLightOffset + ".outputX") ("rigControls" + $rigNum + "|spot9.translateX");
+    connectAttr -force ($mdLightOffset + ".outputY") ("rigControls" + $rigNum + "|spot9.translateY");
+}
+
+proc offsetSixteen(string $rigNum, string $mdLightOffset1, string $mdNegative1, string $mdLightOffset2, string $mdNegative2)
+{
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot1.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot1.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot2.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot2.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot3.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot3.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot4.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot4.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot5.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot5.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot6.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot6.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot7.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot7.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot8.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot8.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot9.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot9.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot10.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot10.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot11.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot11.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot12.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot12.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot13.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot13.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot14.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot14.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot15.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot15.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot16.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot16.translateY");
+}
+
+proc offsetTwentyfive(string $rigNum, string $mdLightOffset1, string $mdNegative1, string $mdLightOffset2, string $mdNegative2)
+{
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot1.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot1.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot2.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot2.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot3.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot3.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot4.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot4.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot5.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot5.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot6.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot6.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot7.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot7.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot8.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot8.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot9.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot9.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot10.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot10.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot11.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot11.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot12.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot12.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot13.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot13.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot14.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot14.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot15.translateX");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot15.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot16.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot16.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot17.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot17.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot18.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot18.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot19.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot19.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot20.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot20.translateY");
+
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot21.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot21.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot22.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot22.translateY");
+    setAttr -lock true ("rigControls" + $rigNum + "|spot23.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot23.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot24.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot24.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot25.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot25.translateY");
+}
+
+proc offsetThirtysix(string $rigNum, string $mdLightOffset1, string $mdNegative1, string $mdLightOffset2, string $mdNegative2, string $mdLightOffset3, string $mdNegative3)
+{
+    connectAttr -force ($mdNegative3 + ".outputX") ("rigControls" + $rigNum + "|spot1.translateX");
+    connectAttr -force ($mdNegative3 + ".outputY") ("rigControls" + $rigNum + "|spot1.translateY");
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot2.translateX");
+    connectAttr -force ($mdNegative3 + ".outputY") ("rigControls" + $rigNum + "|spot2.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot3.translateX");
+    connectAttr -force ($mdNegative3 + ".outputY") ("rigControls" + $rigNum + "|spot3.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot4.translateX");
+    connectAttr -force ($mdNegative3 + ".outputY") ("rigControls" + $rigNum + "|spot4.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot5.translateX");
+    connectAttr -force ($mdNegative3 + ".outputY") ("rigControls" + $rigNum + "|spot5.translateY");
+    connectAttr -force ($mdLightOffset3 + ".outputX") ("rigControls" + $rigNum + "|spot6.translateX");
+    connectAttr -force ($mdNegative3 + ".outputY") ("rigControls" + $rigNum + "|spot6.translateY");
+
+    connectAttr -force ($mdNegative3 + ".outputX") ("rigControls" + $rigNum + "|spot7.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot7.translateY");
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot8.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot8.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot9.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot9.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot10.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot10.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot11.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot11.translateY");
+    connectAttr -force ($mdLightOffset3 + ".outputX") ("rigControls" + $rigNum + "|spot12.translateX");
+    connectAttr -force ($mdNegative2 + ".outputY") ("rigControls" + $rigNum + "|spot12.translateY");
+
+    connectAttr -force ($mdNegative3 + ".outputX") ("rigControls" + $rigNum + "|spot13.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot13.translateY");
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot14.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot14.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot15.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot15.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot16.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot16.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot17.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot17.translateY");
+    connectAttr -force ($mdLightOffset3 + ".outputX") ("rigControls" + $rigNum + "|spot18.translateX");
+    connectAttr -force ($mdNegative1 + ".outputY") ("rigControls" + $rigNum + "|spot18.translateY");
+
+    connectAttr -force ($mdNegative3 + ".outputX") ("rigControls" + $rigNum + "|spot19.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot19.translateY");
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot20.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot20.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot21.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot21.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot22.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot22.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot23.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot23.translateY");
+    connectAttr -force ($mdLightOffset3 + ".outputX") ("rigControls" + $rigNum + "|spot24.translateX");
+    connectAttr -force ($mdLightOffset1 + ".outputY") ("rigControls" + $rigNum + "|spot24.translateY");
+
+    connectAttr -force ($mdNegative3 + ".outputX") ("rigControls" + $rigNum + "|spot25.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot25.translateY");
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot26.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot26.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot27.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot27.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot28.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot28.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot29.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot29.translateY");
+    connectAttr -force ($mdLightOffset3 + ".outputX") ("rigControls" + $rigNum + "|spot30.translateX");
+    connectAttr -force ($mdLightOffset2 + ".outputY") ("rigControls" + $rigNum + "|spot30.translateY");
+
+    connectAttr -force ($mdNegative3 + ".outputX") ("rigControls" + $rigNum + "|spot31.translateX");
+    connectAttr -force ($mdLightOffset3 + ".outputY") ("rigControls" + $rigNum + "|spot31.translateY");
+    connectAttr -force ($mdNegative2 + ".outputX") ("rigControls" + $rigNum + "|spot32.translateX");
+    connectAttr -force ($mdLightOffset3 + ".outputY") ("rigControls" + $rigNum + "|spot32.translateY");
+    connectAttr -force ($mdNegative1 + ".outputX") ("rigControls" + $rigNum + "|spot33.translateX");
+    connectAttr -force ($mdLightOffset3 + ".outputY") ("rigControls" + $rigNum + "|spot33.translateY");
+    connectAttr -force ($mdLightOffset1 + ".outputX") ("rigControls" + $rigNum + "|spot34.translateX");
+    connectAttr -force ($mdLightOffset3 + ".outputY") ("rigControls" + $rigNum + "|spot34.translateY");
+    connectAttr -force ($mdLightOffset2 + ".outputX") ("rigControls" + $rigNum + "|spot35.translateX");
+    connectAttr -force ($mdLightOffset3 + ".outputY") ("rigControls" + $rigNum + "|spot35.translateY");
+    connectAttr -force ($mdLightOffset3 + ".outputX") ("rigControls" + $rigNum + "|spot36.translateX");
+    connectAttr -force ($mdLightOffset3 + ".outputY") ("rigControls" + $rigNum + "|spot36.translateY");
+}
+
+global proc processUI()
+{
+    int $row, $col, $numLights;
+    float $xStart, $yStart;
+    string $lightSel = `radioCollection -query -select numLightsRC`;
+    switch ($lightSel)
+    {
+        case "nineRB":
+            $row = 3;
+            $col = 3;
+            $xStart = -1.0;
+            $yStart = -1.0;
+            $numLights = 9;
+            break;
+        case "sixteenRB":
+            $row = 4;
+            $col = 4;
+            $xStart = -1.5;
+            $yStart = -1.5;
+            $numLights = 16;
+            break;
+        case "twentyfiveRB":
+            $row = 5;
+            $col = 5;
+            $xStart = -2.0;
+            $yStart = -2.0;
+            $numLights = 25;
+            break;
+        case "thirtysixRB":
+            $row = 6;
+            $col = 6;
+            $xStart = -2.5;
+            $yStart = -2.5;
+            $numLights = 36;
+            break;
+    }
+
+    // Create a camera for interactive light positioning
+    string $cam[] = `camera -name "|lightRigCamera#"`;
+    string $rigNum = `match "[0-9]+$" $cam[0]`;
+
+    // Generate the rig controls group
+    string $lightRigGroup = `group -empty -name ("rigControls" + $rigNum)`;
+    parent -relative $lightRigGroup $cam[0];
+    float $color[] = `colorSliderGrp -query -rgbValue colorCSG`;
+    float $colorR = $color[0];
+    float $colorG = $color[1];
+    float $colorB = $color[2];
+    float $shadow[] = `colorSliderGrp -query -rgbValue scCSG`;
+    float $shadowR = $shadow[0];
+    float $shadowG = $shadow[1];
+    float $shadowB = $shadow[2];
+    move -absolute 0 2.5 1 ($lightRigGroup + ".selectHandle");
+    toggle -selectHandle -state 1 $lightRigGroup;
+
+    addAttr -longName "color" -keyable true -usedAsColor -attributeType "float3" $lightRigGroup;
+    addAttr -longName "colorR" -keyable true -attributeType "float" -parent "color" $lightRigGroup;
+    addAttr -longName "colorG" -keyable true -attributeType "float" -parent "color" $lightRigGroup;
+    addAttr -longName "colorB" -keyable true -attributeType "float" -parent "color" $lightRigGroup;
+    setAttr -type "float3" ($lightRigGroup + ".color") $colorR $colorG $colorB;
+
+    addAttr -longName "intensity" -attributeType "double" -softMinValue 0 -softMaxValue 10 -keyable true -defaultValue (`floatSliderGrp -query -value intFSG`) $lightRigGroup;
+
+    addAttr -longName "emitSpecular" -attributeType "bool" -keyable true -defaultValue (`checkBox -query -value specCB`) $lightRigGroup;
+
+    addAttr -longName "coneAngle" -attributeType "double" -minValue .006 -maxValue 179.994 -keyable true -defaultValue (`floatSliderGrp -query -value caFSG`) $lightRigGroup;
+
+    addAttr -longName "penumbraAngle" -attributeType "double" -softMinValue -10 -softMaxValue 10 -minValue -179.994 -maxValue 179.994 -keyable true -defaultValue (`floatSliderGrp -query -value paFSG`) $lightRigGroup;
+
+    addAttr -longName "dropoff" -attributeType "double" -softMaxValue 1000 -minValue 0 -keyable true -defaultValue (`floatSliderGrp -query -value dropFSG`) $lightRigGroup;
+
+    addAttr -longName "lightSpacingX" -attributeType "double" -softMinValue 0 -softMaxValue 5 -keyable true -defaultValue 1 $lightRigGroup;
+
+    addAttr -longName "lightSpacingY" -attributeType "double" -softMinValue 0 -softMaxValue 5 -keyable true -defaultValue 1 $lightRigGroup;
+
+    addAttr -longName "shadowColor" -keyable true -usedAsColor -attributeType "float3" $lightRigGroup;
+    addAttr -longName "shadowColorR" -keyable true -attributeType "float" -parent "shadowColor" $lightRigGroup;
+    addAttr -longName "shadowColorG" -keyable true -attributeType "float" -parent "shadowColor" $lightRigGroup;
+    addAttr -longName "shadowColorB" -keyable true -attributeType "float" -parent "shadowColor" $lightRigGroup;
+    setAttr -type "float3" ($lightRigGroup + ".shadowColor") $shadowR $shadowG $shadowB;
+
+    // Create the controls for shadows in the Attribute Editor
+    addAttr -longName "shadows" -attributeType "enum" -enumName "None:Depth Map:Ray Trace:" -keyable true -defaultValue 0 $lightRigGroup;
+
+    addAttr -longName "useDepthMapShadows" -hidden true -attributeType "bool" -keyable true -defaultValue 0 $lightRigGroup;
+    addAttr -longName "useRayTraceShadows" -hidden true -attributeType "bool" -keyable true -defaultValue 0 $lightRigGroup;
+
+    string $shadowType =  `radioCollection -query -select shadowTypesRC`;
+    switch ($shadowType)
+    {
+        case "None":
+            setAttr ($lightRigGroup + ".shadows") 0;
+            setAttr ($lightRigGroup + ".useDepthMapShadows") 0;
+            setAttr ($lightRigGroup + ".useRayTraceShadows") 0;
+            break;
+        case "Depth Map":
+            setAttr ($lightRigGroup + ".shadows") 1;
+            setAttr ($lightRigGroup + ".useDepthMapShadows") 1;
+            setAttr ($lightRigGroup + ".useRayTraceShadows") 0;
+            break;
+        case "Ray Trace":
+            setAttr ($lightRigGroup + ".shadows") 2;
+            setAttr ($lightRigGroup + ".useDepthMapShadows") 0;
+            setAttr ($lightRigGroup + ".useRayTraceShadows") 1;
+            break;
+    }
+
+    setDrivenKeyframe -currentDriver ($lightRigGroup + ".shadows") ($lightRigGroup + ".useDepthMapShadows");
+    setDrivenKeyframe -currentDriver ($lightRigGroup + ".shadows") ($lightRigGroup + ".useRayTraceShadows");
+
+    addAttr -longName "dmapResolution" -attributeType "long" -minValue 16 -maxValue 8192 -keyable true -defaultValue (`intSliderGrp -query -value drISG`) $lightRigGroup;
+
+    addAttr -longName "dmapFilterSize" -attributeType "long" -softMaxValue 5 -minValue 0 -keyable true -defaultValue (`intSliderGrp -query -value dfISG`) $lightRigGroup;
+
+    addAttr -longName "dmapBias" -attributeType "float" -softMinValue 0 -softMaxValue 1 -keyable true -defaultValue (`floatSliderGrp -query -value dbFSG`) $lightRigGroup;
+
+    addAttr -longName "lightRadius" -attributeType "long" -softMaxValue 1 -minValue 0 -keyable true -defaultValue (`floatSliderGrp -query -value lrFSG`) $lightRigGroup;
+
+    addAttr -longName "shadowRays" -attributeType "long" -softMaxValue 40 -minValue 1 -maxValue 32767 -keyable true -defaultValue (`intSliderGrp -query -value srISG`) $lightRigGroup;
+
+    // Create camera constraints for lights
+    orientConstraint $cam[0] $lightRigGroup;
+    pointConstraint -maintainOffset $cam[0] $lightRigGroup;
+
+    // Lock the rig attributes and remove from channel box
+    string $attrList[] = {"translateX", "translateY", "translateZ", "rotateX", "rotateY", "rotateZ", "scaleX", "scaleY", "scaleZ", "visibility"};
+    for ($attr in $attrList)
+    {
+        setAttr -lock true -keyable false ($lightRigGroup + "." + $attr);
+    }
+
+    // Create Multiply-Divide Nodes
+    string $multDivide = `shadingNode -name ("softSpotRig" + $rigNum + "_mdIntensity") -asUtility multiplyDivide`;
+    setAttr ($multDivide + ".operation") 2;
+    setAttr ($multDivide + ".input2X") $numLights;
+
+    connectAttr -force ($lightRigGroup + ".intensity") ($multDivide + ".input1X");
+
+    // Cycle through the creation of the spot lights
+    float $xPos = $xStart;
+    float $yPos = $yStart;
+    string $extraAttrs[] = {"emitSpecular", "color", "coneAngle", "penumbraAngle", "dropoff", "shadowColor", "useDepthMapShadows",
+                            "dmapResolution", "dmapFilterSize", "dmapBias", "useRayTraceShadows", "lightRadius", "shadowRays"};
+
+    for ($i = 1; $i <= $numLights; $i++)
+    {
+        string $spotName = ("|spot" + $i);
+        spotLight -name $spotName;
+        setAttr ($spotName + ".translateX") $xPos;
+        setAttr ($spotName + ".translateY") $yPos;
+        parent -relative $spotName $lightRigGroup;
+        string $lightName = $lightRigGroup + $spotName;
+        string $lightShape[] = `listRelatives -shapes -path $lightName`;
+        select -clear;
+
+        connectAttr -force ($multDivide + ".outputX") ($lightShape[0] + ".intensity");
+        setAttr ($lightName + ".useDmapAutoFocus") 0;
+
+        for ($attr in $attrList)
+        {
+            if ($attr != "translateX" && $attr != "translateY")
+                setAttr -lock true -keyable false ($lightName + "." + $attr);
+        }
+        for ($attr in $extraAttrs)
+        {
+            connectAttr -force ($lightRigGroup + "." + $attr) ($lightName + "." + $attr);
+        }
+
+        $xPos += 1;
+        if ($xPos > (abs($xStart)))
+        {
+            $xPos = $xStart;
+            $yPos += 1;
+        }
+    }
+
+    // Setup light controls
+    switch ($numLights)
+    {
+        case 9:
+            // Setup nodes
+            string $results[] = buildShadingNodes($rigNum, 1.0, $lightRigGroup, 1);
+            string $mdLightOffset = $results[0];
+            string $mdNegative = $results[1];
+
+            // Setup light offsets
+            offsetNine($rigNum, $mdLightOffset, $mdNegative);
+            break;
+        case 16:
+            // Setup nodes
+            string $results1[] = buildShadingNodes($rigNum, 0.5, $lightRigGroup, 1);
+            string $mdLightOffset1 = $results1[0];
+            string $mdNegative1 = $results1[1];
+
+            string $results2[] = buildShadingNodes($rigNum, 1.5, $lightRigGroup, 2);
+            string $mdLightOffset2 = $results2[0];
+            string $mdNegative2 = $results2[1];
+
+            // Setup light offsets
+            offsetSixteen($rigNum, $mdLightOffset1, $mdNegative1, $mdLightOffset2, $mdNegative2);
+            break;
+        case 25:
+            // Setup nodes
+            string $results1[] = buildShadingNodes($rigNum, 1.0, $lightRigGroup, 1);
+            string $mdLightOffset1 = $results1[0];
+            string $mdNegative1 = $results1[1];
+
+            string $results2[] = buildShadingNodes($rigNum, 2.0, $lightRigGroup, 2);
+            string $mdLightOffset2 = $results2[0];
+            string $mdNegative2 = $results2[1];
+
+            // Setup light offsets
+            offsetTwentyfive($rigNum, $mdLightOffset1, $mdNegative1, $mdLightOffset2, $mdNegative2);
+            break;
+        case 36:
+            // Setup nodes
+            string $results1[] = buildShadingNodes($rigNum, 0.5, $lightRigGroup, 1);
+            string $mdLightOffset1 = $results1[0];
+            string $mdNegative1 = $results1[1];
+
+            string $results2[] = buildShadingNodes($rigNum, 1.5, $lightRigGroup, 2);
+            string $mdLightOffset2 = $results2[0];
+            string $mdNegative2 = $results2[1];
+
+            string $results3[] = buildShadingNodes($rigNum, 2.5, $lightRigGroup, 3);
+            string $mdLightOffset3 = $results3[0];
+            string $mdNegative3 = $results3[1];
+
+            // Setup light offsets
+            offsetThirtysix($rigNum, $mdLightOffset1, $mdNegative1, $mdLightOffset2, $mdNegative2, $mdLightOffset3, $mdNegative3);
+            break;
+    }
+}

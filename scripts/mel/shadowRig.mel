@@ -1,0 +1,75 @@
+///////////////////////////////////////////////////////////////////////////////
+//  shadowRig.mel
+//
+//  Author: Teal Owyang
+//  Date:   2014-12-03
+//
+//  Description: Create a "shadow only" light rig that will allow the user to
+//               generate a lighting setup that will only produce a shadow
+//               without affecting the amount of light being added into the
+//               scene.
+///////////////////////////////////////////////////////////////////////////////
+
+global proc shadowRig()
+{
+    string $controls[] = { "translateX", "translateY", "translateZ",
+                           "rotateX", "rotateY", "rotateZ",
+                           "scaleX", "scaleY", "scaleZ", "v" };
+
+    string $negLightAttr[] = { "decayRate", "emitSpecular", "useDepthMapShadows",
+                               "dmapResolution", "dmapFilterSize", "color",
+                               "shadowColor", "useRayTraceShadows", "lightRadius",
+                               "shadowRays"};
+                           
+    // Create group
+    string $shadowSpot = `group -empty -name "shadowSpot#"`;
+
+    // Grab index
+    string $index = `match "[0-9]+$" $shadowSpot`;
+
+    // Save spotlight names
+    string $shadowLightName = "shadowLight" + $index;
+    string $shadowNegLightName = "shadowNegLight" + $index;
+
+    // Create spotlights
+    string $shadowLight = `spotLight -name $shadowLightName`;
+    string $shadowNegLight = `spotLight -name $shadowNegLightName`;
+
+    // Add spotlights to shadowSpot group
+    group -useAsGroup ("shadowSpot" + $index) $shadowLightName $shadowNegLightName;
+    
+    // Create constraints
+    string $shadowNegLight_pointConstraint[] = `pointConstraint $shadowLightName $shadowNegLightName`;
+    string $shadowNegLight_orientConstraint[] = `orientConstraint $shadowLightName $shadowNegLightName`;
+
+    // Connect shape attributes
+    connectAttr ($shadowLight + ".coneAngle") ($shadowNegLight + ".coneAngle") -force;
+    connectAttr ($shadowLight + ".dropoff") ($shadowNegLight + ".dropoff") -force;
+    connectAttr ($shadowLight + ".penumbraAngle") ($shadowNegLight + ".penumbraAngle") -force;
+
+    // Create utility node
+    string $shadowSpotIntensity = `shadingNode -asUtility multiplyDivide -name ($shadowSpot + "mdIntensity")`;
+    connectAttr ($shadowLight + ".intensity") ($shadowSpotIntensity + ".input1X");
+    setAttr ($shadowSpotIntensity + ".input2X") -1;
+    connectAttr ($shadowSpotIntensity + ".outputX") ($shadowNegLight + ".intensity");
+
+    // Zero out shadow light attributes
+    setAttr ($shadowNegLightName + ".useDepthMapShadows") 0;
+    setAttr ($shadowNegLightName + ".useRayTraceShadows") 0;
+
+    // Lock attributes
+    for ($attr in $negLightAttr)
+    {
+        setAttr -lock true -keyable false ($shadowNegLightName + "." + $attr);
+    }
+    
+    // Lock and hide shadowSpot controls and hide showNegLight controls
+    for ($control in $controls)
+    {
+        setAttr -lock true -keyable false ($shadowSpot + "." + $control);
+        setAttr -lock true -keyable false ($shadowNegLightName + "." + $control);
+    }
+    
+    // Activate displayHandle
+    setAttr ($shadowLightName + ".displayHandle") 1;
+}

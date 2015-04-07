@@ -1,0 +1,47 @@
+/************************************************************************************************************
+ *     Script Name:    createAverage.mel
+ *     Author:         Mike Harris
+ *     Date:           April 14, 2006
+ *
+ *     Usage:          Select any 4 transform nodes and execute.
+ *
+ *     Description:    Used to create a locator that averages it's position
+ *                     based on the position of the 4 items selected.
+ ***********************************************************************************************************/
+
+global proc createAverage()
+{
+        string $selected[] = `ls -selection`;
+        if ( size( $selected ) == 4 )
+        {
+                string $pmaObj1_2sum = `shadingNode -name "sumObj1_2" -asUtility plusMinusAverage`;
+                string $pmaObj3_4sum = `shadingNode -name "sumObj3_4" -asUtility plusMinusAverage`;
+                string $pmaTotalSum = `shadingNode -name "totalSum" -asUtility plusMinusAverage`;
+                string $mdTotalAvg = `shadingNode -name "totalAverage" -asUtility multiplyDivide`;
+                
+                connectAttr -force ( $selected[0] + ".translate" ) ( $pmaObj1_2sum + ".input3D[0]" );
+                connectAttr -force ( $selected[1] + ".translate" ) ( $pmaObj1_2sum + ".input3D[1]" );
+
+                connectAttr -force ( $selected[2] + ".translate" ) ( $pmaObj3_4sum + ".input3D[0]" );
+                connectAttr -force ( $selected[3] + ".translate" ) ( $pmaObj3_4sum + ".input3D[1]" );
+
+                connectAttr -force ( $pmaObj1_2sum + ".output3D" ) ( $pmaTotalSum + ".input3D[0]" );
+                connectAttr -force ( $pmaObj3_4sum + ".output3D" ) ( $pmaTotalSum + ".input3D[1]" );
+
+                connectAttr -force ( $pmaTotalSum + ".output3D" ) ( $mdTotalAvg + ".input1" );
+                
+                setAttr -edit ( $pmaObj1_2sum + ".operation" ) 1;
+                setAttr -edit ( $pmaObj3_4sum + ".operation" ) 1;
+                setAttr -edit ( $pmaTotalSum + ".operation" ) 1;
+
+                setAttr -edit ( $mdTotalAvg + ".operation" ) 2;
+                setAttr -edit ( $mdTotalAvg + ".input2X" ) 4;
+                setAttr -edit ( $mdTotalAvg + ".input2Y" ) 4;
+                setAttr -edit ( $mdTotalAvg + ".input2Z" ) 4;
+                
+                string $locator[] = `spaceLocator -position 0 0 0`;
+                connectAttr -force ( $mdTotalAvg + ".output" ) ( $locator[0] + ".translate" );
+        }
+        else
+                error( "Invalid selection." );
+}

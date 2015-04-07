@@ -1,0 +1,175 @@
+///////////////////////////////////////////////////////////////////////////////
+//  randomizer.mel
+//
+//  Author:      Teal Owyang
+//  Date:        2014-10-29
+//
+//  Description: Takes any number of selected objects and scatter them
+//               throughout the Maya scene randomizing their position,
+//               rotation, and scale.
+///////////////////////////////////////////////////////////////////////////////
+
+global proc randomizerUI2()
+{
+    string $controls[] = { "tx", "ty", "tz",
+                           "rx", "ry", "rz",
+                           "sx", "sy", "sz" };
+
+    string $window = "randomizerUI";
+    if (`window -exists $window`)
+        deleteUI $window;
+    if (`windowPref -exists $window`)
+        windowPref -remove $window;
+        
+    int $width = 300;
+    int $height = 290;
+        
+    window -width $width -height $height -sizeable false -menuBar true -title "Scatterand" randomizerUI;
+        frameLayout -borderVisible 1 -borderStyle "etchedIn" -labelVisible 0;
+            formLayout mainForm;
+            
+        radioCollection spaceRC;
+            radioButton -label "Local Space" -select localSpaceRB;
+            radioButton -label "World Space" worldSpaceRB;
+
+        text -label "Min" MinFloat;
+        text -label "Max" MaxFloat;
+        
+        text -label "Translate:" translateTxt;        
+        text -label "Rotate:" rotateTxt;
+        text -label "Scale:" scaleTxt;
+
+        for ($control in $controls)
+        {
+            // Create Float Fields
+            floatField -width 75 -precision 3 -enable 0 ($control + "MinFloat");
+            floatField -width 75 -precision 3 -enable 0 ($control + "MaxFloat");
+
+            // Set Rotate range
+            if (`match "^r" $control` == "r")
+            {
+                floatField -edit -minValue 0 -maxValue 360 ($control + "MinFloat");
+                floatField -edit -minValue 0 -maxValue 360 -value 360 ($control + "MaxFloat");
+            }
+            // Set Scale range
+            else if (`match "^s" $control` == "s")
+            {
+                floatField -edit -minValue .001 -value 1 ($control + "MinFloat");
+                floatField -edit -minValue .001 -value 1 ($control + "MaxFloat");
+            }    
+
+            // Create Checkboxes
+            string $lowerLabel = `substring $control 2 3`;
+            string $label = `capitalizeString($lowerLabel)`;
+
+            checkBox -label $label -changeCommand ("toggleCheckBox(\"" + $control + "\")") ($control + "CB");
+        }
+
+        separator -style "in" sep;
+        
+        button -label "OK" -width 150 -command("randomizer();") okBtn;
+        button -label "Cancel" -width 150 -command ("deleteUI " + $window) cancelBtn;
+    
+    // Local and World Space
+    formLayout -edit -attachForm localSpaceRB "left" 60 -attachForm localSpaceRB "top" 10 mainForm;
+    formLayout -edit -attachControl worldSpaceRB "left" 25 localSpaceRB -attachForm worldSpaceRB "top" 10 mainForm;
+
+    // Min and Max labels
+    formLayout -edit -attachForm MinFloat "left" 165 -attachControl MinFloat "top" 10 worldSpaceRB mainForm;
+    formLayout -edit -attachForm MaxFloat "left" 235 -attachControl MaxFloat "top" 10 worldSpaceRB mainForm;
+    
+    // Translate    
+    formLayout -edit -attachForm translateTxt "left" 25 -attachControl translateTxt "top" 1 MinFloat mainForm;
+    formLayout -edit -attachForm txCB "left" 100 -attachControl txCB "top" 1 MinFloat mainForm;
+    formLayout -edit -attachForm txMinFloat "left" 135 -attachControl txMinFloat "top" 1 MinFloat mainForm;
+    formLayout -edit -attachForm txMaxFloat "left" 210 -attachControl txMaxFloat "top" 1 MinFloat mainForm;
+        
+    formLayout -edit -attachForm tyCB "left" 100 -attachControl tyCB "top" 7 translateTxt mainForm;
+    formLayout -edit -attachForm tyMinFloat "left" 135 -attachControl tyMinFloat "top" 7 translateTxt mainForm;
+    formLayout -edit -attachForm tyMaxFloat "left" 210 -attachControl tyMaxFloat "top" 7 translateTxt mainForm;
+
+    formLayout -edit -attachForm tzCB "left" 100 -attachControl tzCB "top" 3 tyCB mainForm;
+    formLayout -edit -attachForm tzMinFloat "left" 135 -attachControl tzMinFloat "top" 3 tyCB mainForm;
+    formLayout -edit -attachForm tzMaxFloat "left" 210 -attachControl tzMaxFloat "top" 3 tyCB mainForm;            
+
+    // Rotate
+    formLayout -edit -attachForm rotateTxt "left" 25 -attachControl rotateTxt "top" 10 tzCB mainForm;
+    formLayout -edit -attachForm rxCB "left" 100 -attachControl rxCB "top" 10 tzCB mainForm;
+    formLayout -edit -attachForm rxMinFloat "left" 135 -attachControl rxMinFloat "top" 10 tzCB mainForm;
+    formLayout -edit -attachForm rxMaxFloat "left" 210 -attachControl rxMaxFloat "top" 10 tzCB mainForm;
+        
+    formLayout -edit -attachForm ryCB "left" 100 -attachControl ryCB "top" 7 rotateTxt mainForm;
+    formLayout -edit -attachForm ryMinFloat "left" 135 -attachControl ryMinFloat "top" 7 rotateTxt mainForm;
+    formLayout -edit -attachForm ryMaxFloat "left" 210 -attachControl ryMaxFloat "top" 7 rotateTxt mainForm;
+
+    formLayout -edit -attachForm rzCB "left" 100 -attachControl rzCB "top" 3 ryCB mainForm;
+    formLayout -edit -attachForm rzMinFloat "left" 135 -attachControl rzMinFloat "top" 3 ryCB mainForm;
+    formLayout -edit -attachForm rzMaxFloat "left" 210 -attachControl rzMaxFloat "top" 3 ryCB mainForm; 
+    
+    // Scale
+    formLayout -edit -attachForm scaleTxt "left" 25 -attachControl scaleTxt "top" 10 rzCB mainForm;
+    formLayout -edit -attachForm sxCB "left" 100 -attachControl sxCB "top" 10 rzCB mainForm;
+    formLayout -edit -attachForm sxMinFloat "left" 135 -attachControl sxMinFloat "top" 10 rzCB mainForm;
+    formLayout -edit -attachForm sxMaxFloat "left" 210 -attachControl sxMaxFloat "top" 10 rzCB mainForm;
+        
+    formLayout -edit -attachForm syCB "left" 100 -attachControl syCB "top" 7 scaleTxt mainForm;
+    formLayout -edit -attachForm syMinFloat "left" 135 -attachControl syMinFloat "top" 7 scaleTxt mainForm;
+    formLayout -edit -attachForm syMaxFloat "left" 210 -attachControl syMaxFloat "top" 7 scaleTxt mainForm;
+
+    formLayout -edit -attachForm szCB "left" 100 -attachControl szCB "top" 3 syCB mainForm;
+    formLayout -edit -attachForm szMinFloat "left" 135 -attachControl szMinFloat "top" 3 syCB mainForm;
+    formLayout -edit -attachForm szMaxFloat "left" 210 -attachControl szMaxFloat "top" 3 syCB mainForm; 
+    
+    // Buttons
+    formLayout -edit -attachForm sep "left" 0 -attachForm sep "right" 0 -attachForm sep "bottom" 25 mainForm;
+    formLayout -edit -attachForm okBtn "left" 0 -attachControl okBtn "top" 0 sep -attachPosition okBtn "right" 0 50 -attachForm okBtn "bottom" 0 mainForm;        
+    formLayout -edit -attachControl cancelBtn "left" 0 okBtn -attachControl cancelBtn "top" 0 sep -attachForm cancelBtn "right" 0 -attachForm cancelBtn "bottom" 0 mainForm;
+
+    showWindow $window;
+}
+
+proc toggleCheckBox(string $control)
+{
+    int $enable = `checkBox -query -value ($control + "CB")`;
+
+    floatField -edit -enable $enable ($control + "MinFloat");
+    floatField -edit -enable $enable ($control + "MaxFloat");
+}
+
+proc randomizer()
+{
+    string $controls[] = { "tx", "ty", "tz",
+                           "rx", "ry", "rz",
+                           "sx", "sy", "sz" };
+
+    float $controlMinValues[9];
+    float $controlMaxValues[9];
+
+    for ($i=0; $i<9; $i++)
+    {
+        $controlMinValues[$i] = `floatField -query -value ($controls[$i] + "MinFloat")`;
+        $controlMaxValues[$i] = `floatField -query -value ($controls[$i] + "MaxFloat")`;
+    }
+
+    string $selectedRB = `radioCollection -query -select spaceRC`;
+    string $objects[] = `ls -selection`;
+    
+    for ($object in $objects)
+    {
+        for ($i=0; $i<9; $i++)
+        {
+            if (`checkBox -query -value ($controls[$i] + "CB")`)
+            {
+                if ($selectedRB == "worldSpaceRB")
+                {
+                    setAttr ($object + "." + $controls[$i]) ( rand($controlMinValues[$i], $controlMaxValues[$i]) );
+                }
+                else
+                {
+                    float $val = `getAttr ($object + "." + $controls[$i])`;
+                    setAttr ($object + "." + $controls[$i]) ( rand( ($controlMinValues[$i] + $val), ($controlMaxValues[$i] + $val) ) );
+                }
+            }
+        }
+    }
+}
